@@ -51,4 +51,4 @@ Create a simple web app to display live results of emotion classification on det
 ## Acknowledgements
 - Ultralytics YOLOv8 for object detection.
 - FER-2013 dataset for emotion classification.
-- AffectNet dataset for broader emotion recognition.
+- WIDER-FACE for Fine Tuning YOLO
