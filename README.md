@@ -8,6 +8,7 @@ This project uses YOLOv8 to detect human faces in real-time or recorded videos a
 - **Integrated Pipeline**: Combines face detection with emotion recognition for end-to-end video processing.
 - **Real-Time Capability**: Optimized for GPU acceleration to process live video streams at a consistent FPS.
 - **Scalable Deployment**: GPU-enabled cloud platform hosting with REST API support.
+- **GPU Acceleration:** The pipeline is optimized for GPU-enabled cloud platforms
 - **Interactive Web App**: Live results visualization in a web service.
   
 ## Task Overview
