@@ -4,3 +4,11 @@
 *.mov
 *.mkv
 *.wmv
+# Ignore image files
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+*.webp

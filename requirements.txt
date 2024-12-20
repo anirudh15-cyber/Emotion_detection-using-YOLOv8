@@ -1,0 +1,10 @@
+yolov8
+opencv-python
+torch
+fastapi
+flask
+numpy
+pillow
+requests
+scikit-learn
+
