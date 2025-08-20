@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Emotion Detector System | By Anirudh Narang</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      border-top: 4px solid #06b6d4;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .progress-bar {
+      width: 0%;
+      height: 6px;
+      background: linear-gradient(to right, #06b6d4, #3b82f6);
+      border-radius: 10px;
+      transition: width 0.4s ease;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 text-white min-h-screen flex items-center justify-center">
+
+  <!-- Card -->
+  <div class="bg-gray-850 rounded-2xl shadow-2xl w-full max-w-2xl p-10">
+    <h1 class="text-4xl font-bold text-center text-cyan-400 mb-3">🎭 Emotion Detector</h1>
+    <h2 class="text-2xl font-semibold text-center text-gray-300 mb-6">Made by Anirudh Narang</h2>
+    <p class="text-center text-gray-400 mb-8">Upload a video or use your webcam to detect emotions in real-time.</p>
+
+    <!-- Upload Form --> 
+    <form id="upload-form" enctype="multipart/form-data" class="space-y-6">
+      <input type="file" id="video-file" name="file" accept="video/mp4"
+        class="block w-full text-sm text-gray-300 border border-gray-700 rounded-lg cursor-pointer bg-gray-800 focus:outline-none">
+
+      <div class="flex gap-4">
+        <button type="submit"
+          class="flex-1 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-3 rounded-xl shadow-md transition transform hover:scale-105">
+          🚀 Upload & Analyze
+        </button>
+
+        <button type="button" id="webcam-btn"
+          class="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-xl shadow-md transition transform hover:scale-105">
+          🎥 Open Webcam
+        </button>
+      </div>
+    </form>
+
+    <!-- Upload Status -->
+    <div id="status-container" class="mt-8 hidden text-center">
+      <div class="flex justify-center mb-4">
+        <div class="spinner"></div>
+      </div>
+      <p id="status-message" class="text-gray-300">Preparing upload...</p>
+      <div class="w-full bg-gray-700 rounded-full mt-4">
+        <div id="progress-bar" class="progress-bar"></div>
+      </div>
+    </div>
+
+    <!-- Live Webcam Stream -->
+    <div id="webcam-container" class="mt-8 hidden text-center">
+      <h3 class="text-lg font-semibold text-purple-400 mb-3">🎥 Live Webcam Feed</h3>
+      <img id="webcam-stream" class="w-full rounded-xl shadow-lg mb-4" />
+      <button id="stop-webcam-btn"
+        class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition transform hover:scale-105">
+        ⏹ Stop Webcam
+      </button>
+    </div>
+
+    <!-- Live Stream -->
+    <div id="video-container" class="mt-8 hidden">
+      <h3 class="text-lg font-semibold text-cyan-400 mb-3 text-center">📹 Playing video</h3>
+      <img id="stream" class="w-full rounded-xl shadow-lg" />
+    </div>
+  </div>
+
+  <!-- Script -->
+  <script>
+    // Handle video upload
+    document.getElementById('upload-form').addEventListener('submit', async function (event) {
+      event.preventDefault();
+
+      const fileInput = document.getElementById('video-file');
+      const statusContainer = document.getElementById('status-container');
+      const statusMessage = document.getElementById('status-message');
+      const progressBar = document.getElementById('progress-bar');
+      const spinner = document.querySelector('.spinner');
+      const videoContainer = document.getElementById('video-container');
+      const stream = document.getElementById('stream');
+      const webcamContainer = document.getElementById('webcam-container');
+
+      if (!fileInput.files[0]) {
+        alert("⚠️ Please select a video file.");
+        return;
+      }
+
+      // Show status
+      statusContainer.classList.remove("hidden");
+      videoContainer.classList.add("hidden");
+      webcamContainer.classList.add("hidden");
+      progressBar.style.width = "0%";
+      statusMessage.textContent = "⏳ Uploading...";
+      spinner.style.display = "block";
+
+      let formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/upload", true);
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            let percent = Math.round((e.loaded / e.total) * 100);
+            progressBar.style.width = percent + "%";
+            statusMessage.textContent = `⬆️ Uploading: ${percent}%`;
+          }
+        };
+
+        xhr.onload = async () => {
+          if (xhr.status === 200) {
+            const result = JSON.parse(xhr.responseText);
+            statusMessage.textContent = "✅ Upload complete! Starting stream...";
+            spinner.style.display = "none";
+            progressBar.style.width = "100%";
+
+            // Start streaming uploaded video
+            stream.src = `/video_feed?file=${encodeURIComponent(result.url.split('/').pop())}`;
+            videoContainer.classList.remove("hidden");
+          } else {
+            statusMessage.textContent = "❌ Failed to upload.";
+            spinner.style.display = "none";
+          }
+        };
+
+        xhr.send(formData);
+      } catch (error) {
+        statusMessage.textContent = "⚠️ Error: " + error.message;
+        spinner.style.display = "none";
+      }
+    });
+
+    // Handle webcam button
+    document.getElementById('webcam-btn').addEventListener('click', function () {
+      const webcamContainer = document.getElementById('webcam-container');
+      const webcamStream = document.getElementById('webcam-stream');
+      const statusContainer = document.getElementById('status-container');
+      const videoContainer = document.getElementById('video-container');
+
+      // Hide other sections
+      statusContainer.classList.add("hidden");
+      videoContainer.classList.add("hidden");
+
+      // Show webcam stream
+      webcamContainer.classList.remove("hidden");
+      webcamStream.src = "/webcam_feed";
+    });
+
+    // Handle stop webcam button
+    document.getElementById('stop-webcam-btn').addEventListener('click', function () {
+      const webcamContainer = document.getElementById('webcam-container');
+      const webcamStream = document.getElementById('webcam-stream');
+
+      // Hide container & stop stream
+      webcamStream.src = "";
+      webcamContainer.classList.add("hidden");
+    });
+  </script>
+</body>
+</html>
