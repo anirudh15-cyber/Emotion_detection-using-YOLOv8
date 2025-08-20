@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Video for Emotion Detection</title>
+</head>
+<body>
+    <h1>Upload a Video for Emotion Detection</h1>
+    <form id="upload-form" enctype="multipart/form-data">
+        <input type="file" id="video-file" name="file" accept="video/mp4" />
+        <button type="submit">Upload Video</button>
+    </form>
+    <p id="status-message"></p>
+    <video id="video-player" controls style="width: 100%; display: none;"></video>
+
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const fileInput = document.getElementById('video-file');
+            const statusMessage = document.getElementById('status-message');
+            const videoPlayer = document.getElementById('video-player');
+
+            if (!fileInput.files[0]) {
+                statusMessage.textContent = "Please select a video file to upload.";
+                return;
+            }
+
+            statusMessage.textContent = "Uploading and processing your video, please wait...";
+            let formData = new FormData();
+            formData.append("file", document.getElementById('video-file').files[0]);
+
+            try {
+                const response = await fetch('/process_video', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to process video. Please try again.");
+                }
+
+                const result = await response.json();
+                console.log(result)
+                statusMessage.textContent = "Video processed successfully!";
+                videoPlayer.src = result.output_video; 
+                videoPlayer.style.display = "block";
+                videoPlayer.play();
+                videoPlayer.onerror = () => {
+                    statusMessage.textContent = "Error: Unable to load the processed video.";
+                    videoPlayer.style.display = "none";
+                };
+
+            } catch (error) {
+                statusMessage.textContent = error.message;
+            }
+        });
+    </script>
+</body>
+</html>
